@@ -424,7 +424,7 @@ async def add_model_worker(call: types.CallbackQuery):
     # Ensure no special characters in the text are causing issues
     text = text.replace("_", "\\_").replace("[", "\\[").replace("]", "\\]").replace("(",
                                                                                                         "\\(").replace(
-        ")", "\\)").replace("~", "\\~").replace("`", "\\`").replace(">", "\\>").replace("#", "\\#").replace("+",
+        ")", "\\)").replace("~", "\\~").replace(">", "\\>").replace("#", "\\#").replace("+",
                                                                                                             "\\+").replace("=", "\\=").replace("|", "\\|").replace("{", "\\{").replace("}", "\\}").replace(".",
                                                                                                             "\\.").replace(
         "!", "\\!")
