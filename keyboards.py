@@ -77,7 +77,7 @@ def inforamation_buttons():
     feedbacks = InlineKeyboardButton(text="💬️ Отзывы", url=config['Bot']['feedback_channel'])
     support = InlineKeyboardButton(text="🆘 Поддержка", url=f"https://t.me/{config['Support']['support_username'].replace('@', '')}")
     guarante = InlineKeyboardButton(text="💯 Гарантии", url=config["Bot"]["garantii"])
-    menu.add(feedbacks)
+    # menu.add(feedbacks)
     menu.row(support, guarante)
     return menu
 
