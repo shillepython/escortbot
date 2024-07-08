@@ -425,8 +425,7 @@ async def add_model_worker(call: types.CallbackQuery):
     text = text.replace("_", "\\_").replace("[", "\\[").replace("]", "\\]").replace("(",
                                                                                                         "\\(").replace(
         ")", "\\)").replace("~", "\\~").replace(">", "\\>").replace("#", "\\#").replace("+",
-                                                                                                            "\\+").replace("=", "\\=").replace("|", "\\|").replace("{", "\\{").replace("}", "\\}").replace(".",
-                                                                                                            "\\.").replace(
+                                                                                                            "\\+").replace("=", "\\=").replace("|", "\\|").replace("{", "\\{").replace("}", "\\}").replace(
         "!", "\\!")
 
     if payment_type == "tex":
