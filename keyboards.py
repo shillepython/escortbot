@@ -146,22 +146,30 @@ def show_all_models(index_page, data):
     return menu
 
 
-def model_keys(girl, index_page):
+def model_keys(girl, index_page, photo_index=0):
     menu = InlineKeyboardMarkup(row_width=1)
     girl_num = girl[0]
     services = InlineKeyboardButton(text="Услуги", callback_data=f"girl_services_{girl_num}")
-    another_photo = InlineKeyboardButton(text="Другое фото", callback_data=f"girl_another_photo_{girl_num}_{index_page}")
-    nudes_photos = InlineKeyboardButton(text="Обнаженные фото", callback_data=f"girl_nudes_photos_{girl_num}_{index_page}")
+    next_photo = InlineKeyboardButton(text="Следующее фото",
+                                      callback_data=f"girl_next_photo_{girl_num}_{index_page}_{photo_index}")
+    prev_photo = InlineKeyboardButton(text="Предыдущее фото",
+                                      callback_data=f"girl_prev_photo_{girl_num}_{index_page}_{photo_index}")
+    nudes_photos = InlineKeyboardButton(text="Обнаженные фото",
+                                        callback_data=f"girl_nudes_photos_{girl_num}_{index_page}")
     buy = InlineKeyboardButton(text="Оформить", callback_data=f"girl_buy_{girl_num}_{index_page}")
     back = InlineKeyboardButton(text="⏪ Назад", callback_data=f"girl_back_{index_page}")
+
+    # Добавляем кнопки, если это не первое или не последнее фото
+    if photo_index > 0:
+        menu.add(prev_photo)
+    if photo_index < len(girl[6].split(";")) - 1:
+        menu.add(next_photo)
+
     menu.add(services)
-    menu.add(another_photo)
-    try:
-        nude = int(girl[7])
-    except:
-        menu.add(nudes_photos)
+    menu.add(nudes_photos)
     menu.add(buy)
     menu.add(back)
+
     return menu
 
 

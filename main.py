@@ -366,32 +366,39 @@ async def show_girl_number(call: types.CallbackQuery):
         pass
     await bot.send_photo(call.from_user.id, photo=photo,
                          caption=s_msg.show_model.format(girl[1], user[1], price_per_hour, price_per_2_hour,
-                                                         price_per_night, girl[4]), reply_markup=nav.model_keys(girl, page_index))
+                                                         price_per_night, girl[4]),
+                         reply_markup=nav.model_keys(girl, page_index))
 
+
+@dp.callback_query_handler(text_contains="girl_next_photo_")
+@dp.callback_query_handler(text_contains="girl_prev_photo_")
+async def change_photo(call: types.CallbackQuery):
+    girl_index = int(call.data.split("_")[3])
+    page_index = int(call.data.split("_")[4])
+    current_photo_index = int(call.data.split("_")[5])
+
+    if "next" in call.data:
+        new_photo_index = current_photo_index + 1
+    elif "prev" in call.data:
+        new_photo_index = current_photo_index - 1
+
+    girl = db.get_form(cursor, girl_index)
+    photos = str(girl[6]).split(";")
+    new_photo = photos[new_photo_index]
+
+    await call.message.delete()
+    await bot.send_photo(
+        chat_id=call.from_user.id,
+        photo=new_photo,
+        caption=call.message.caption,
+        reply_markup=nav.model_keys(girl, page_index, new_photo_index)
+    )
 
 @dp.callback_query_handler(text_contains="girl_services_")
 async def add_model_worker(call: types.CallbackQuery):
     girl_index = int(call.data.split("_")[2])
     girl = db.get_form(cursor, girl_index)
     await bot.answer_callback_query(callback_query_id=call.id, text=girl[5], show_alert=True)
-
-
-@dp.callback_query_handler(text_contains="girl_another_photo_")
-async def add_model_worker(call: types.CallbackQuery):
-    girl_index = int(call.data.split("_")[3])
-    page_index = int(call.data.split("_")[4])
-    girl = db.get_form(cursor, girl_index)
-    message = call.message
-    chat_id = message.chat.id
-    photos = str(girl[6]).split(";")
-    photo = random.choice(photos)
-    await call.message.delete()
-    await bot.send_photo(
-        chat_id=chat_id,
-        photo=photo,
-        caption=call.message.text,
-        reply_markup=nav.model_keys(girl, page_index)
-    )
 
 
 @dp.callback_query_handler(text_contains="girl_nudes_photos_")
