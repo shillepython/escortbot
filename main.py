@@ -384,15 +384,28 @@ async def change_photo(call: types.CallbackQuery):
 
     girl = db.get_form(cursor, girl_index)
     photos = str(girl[6]).split(";")
+
+    # Проверяем, что новый индекс не выходит за пределы массива
+    if new_photo_index < 0 or new_photo_index >= len(photos):
+        await call.answer("Фото не найдено", show_alert=True)
+        return
+
     new_photo = photos[new_photo_index]
 
-    await call.message.delete()
-    await bot.send_photo(
-        chat_id=call.from_user.id,
-        photo=new_photo,
-        caption=call.message.caption,
-        reply_markup=nav.model_keys(girl, page_index, new_photo_index)
-    )
+    # Проверка и вывод значения new_photo
+    print(f"Sending photo: {new_photo}")
+
+    try:
+        await call.message.delete()
+        await bot.send_photo(
+            chat_id=call.from_user.id,
+            photo=new_photo,
+            caption=call.message.caption,
+            reply_markup=nav.model_keys(girl, page_index, new_photo_index)
+        )
+    except aiogram.utils.exceptions.BadRequest as e:
+        print(f"Failed to send photo: {e}")
+        await call.answer("Не удалось отправить фото. Возникала какая-то ошибка", show_alert=True)
 
 @dp.callback_query_handler(text_contains="girl_services_")
 async def add_model_worker(call: types.CallbackQuery):
