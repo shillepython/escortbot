@@ -55,6 +55,17 @@ def worker_panel():
     return menu
 
 
+def skip_button():
+    skip = InlineKeyboardMarkup(row_width=1)
+    skip.add(InlineKeyboardButton('Пропустить', callback_data='skip'))
+    return skip
+
+def finish_upload():
+    finish_upload_button = InlineKeyboardMarkup(row_width=1)
+    finish_upload_button.add(InlineKeyboardButton('Завершить загрузку', callback_data='finish_upload'))
+    return finish_upload_button
+
+
 def close_tab():
     menu = InlineKeyboardMarkup(row_width=1)
     my_orders = InlineKeyboardButton(text="Закрыть", callback_data="my_orders_user")

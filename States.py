@@ -16,4 +16,8 @@ class AdminAddWorker(StatesGroup):
 
 class AddModelWorker(StatesGroup):
     about = State()
+    confirm_about = State()
+    photos = State()
+    confirm_photos = State()
+    nude_photos = State()
     confirm = State()

@@ -1,7 +1,7 @@
 import random
 
 import aiogram
-from aiogram.types import InputMediaPhoto
+from aiogram.types import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
 
 import db_hendlers
 from misc import config, logging, conn, cursor, bot, dispatcher as dp
@@ -193,7 +193,8 @@ async def delete_form_get_id(msg: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(text="add_model_worker")
 async def worker_panel(call: types.CallbackQuery, state: FSMContext):
-    await call.message.edit_text(s_msg.add_model_worker, reply_markup=nav.close_tab(), disable_web_page_preview=True, parse_mode="HTML")
+    await call.message.edit_text(s_msg.add_model_worker, reply_markup=nav.close_tab(), disable_web_page_preview=True,
+                                 parse_mode="HTML")
     await AddModelWorker.about.set()
 
 
@@ -208,35 +209,86 @@ async def add_model_worker(msg: types.Message, state: FSMContext):
             price_per_hour = anketa[2]
             about = anketa[3]
             services = anketa[4]
-            photos = anketa[5]
-            nude_photos = anketa[6]
-            photo = anketa[5].split(";")[0]
         except Exception as ex:
-            return await msg.reply("Формат не правильный!\nПовтори ввод:")
-        if not age.isdigit():
-            return await msg.reply("Возвраст должен быть целым числом!\nПовтори ввод:")
-        if not price_per_hour.isdigit():
-            return await msg.reply("Время за час должно быть целым числом!\nПовтори ввод:")
-        if not photos.__contains__("imgur"):
-            return await msg.reply("Ссылок на фотки имгур не найдено!\nПовтори ввод:")
-        if not nude_photos.__contains__("imgur"):
-            if not nude_photos.__contains__("0"):
-                return await msg.reply("Ссылок на нюдсы имгур не найдено!\nПовтори ввод:")
+            return await msg.reply("Формат не правильный!\нПовтори ввод:")
 
-        data_girl = [girl_name, age, price_per_hour, about, services, photos, nude_photos]
+        if not age.isdigit():
+            return await msg.reply("Возраст должен быть целым числом!\нПовтори ввод:")
+        if not price_per_hour.isdigit():
+            return await msg.reply("Сумма за час должна быть целым числом!\нПовтори ввод:")
+
+        data_girl = [girl_name, age, price_per_hour, about, services]
         data["data_girl"] = data_girl
-        await AddModelWorker.confirm.set()
+        await AddModelWorker.photos.set()
+        await msg.reply(
+            "Загрузите фотографии для анкеты. Можно отправить несколько фотографий одним сообщением. Когда закончите, нажмите 'Завершить загрузку'.",
+            reply_markup=nav.finish_upload())
+
+
+@dp.message_handler(content_types=['photo'], state=AddModelWorker.photos)
+async def add_photos(msg: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        if "photos" not in data:
+            data["photos"] = set()  # Используем множество для хранения уникальных фото
+        data["photos"].add(msg.photo[-1].file_id)  # Добавляем только последнее фото, чтобы избежать дубликатов
+
+
+@dp.callback_query_handler(state=AddModelWorker.photos, text="finish_upload")
+async def finish_upload(call: types.CallbackQuery, state: FSMContext):
+    async with state.proxy() as data:
+        photos = list(data.get("photos", []))  # Преобразуем множество в список
+        if not photos:
+            return await call.message.reply(
+                "Вы не загрузили ни одной фотографии. Пожалуйста, загрузите хотя бы одну фотографию.")
+
+        # Отправляем пользователю фотографии для подтверждения
+        media_group = [InputMediaPhoto(photo_id) for photo_id in photos]
+        await bot.send_media_group(call.from_user.id, media_group)
+
+        await AddModelWorker.confirm_photos.set()
+        await bot.send_message(call.from_user.id,
+                               "Фотографии загружены. Подтвердите, что всё верно",
+                               reply_markup=nav.confirm_add_girl())
+
+
+@dp.callback_query_handler(state=AddModelWorker.confirm_photos, text_contains="confirm_add_girl_")
+async def confirm_photos(call: types.CallbackQuery, state: FSMContext):
+    answer = call.data.split("_")[-1]
+    if int(answer) == 1:
+        await AddModelWorker.nude_photos.set()
+        await bot.send_message(call.from_user.id,
+                               "Загрузите обнаженные фотографии, если они не требуются, введите '0'.")
+    else:
+        await state.finish()
+        await call.message.delete()
+        await bot.send_message(call.from_user.id, text="Действие отменено!", reply_markup=nav.worker_panel())
+
+
+@dp.message_handler(content_types=['photo', 'text'], state=AddModelWorker.nude_photos)
+async def add_nude_photos(msg: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        if msg.text == '0':
+            data["nude_photos"] = "0"
+        elif msg.content_type == 'photo':
+            nude_photos = [photo.file_id for photo in msg.photo]
+            data["nude_photos"] = ";".join(nude_photos)
+        else:
+            return await msg.reply("Пожалуйста, загрузите фотографии или введите '0'.")
+
+        girl_name, age, price_per_hour, about, services = data["data_girl"]
+        photos = list(data["photos"])[0]  # берем первое фото как главное
         price_per_2_hour = int(float(price_per_hour) * 1.8)
         price_per_night = int(float(price_per_2_hour) * 1.8)
-        await bot.send_photo(msg.from_user.id, photo=photo, caption=s_msg.show_model.format(girl_name, user[1], price_per_hour, price_per_2_hour, price_per_night, about), reply_markup=nav.confirm_add_girl())
 
+        await AddModelWorker.confirm.set()
+        await bot.send_photo(msg.from_user.id, photo=photos, caption=s_msg.show_model.format(girl_name, age, price_per_hour, price_per_2_hour, price_per_night, about), reply_markup=nav.confirm_add_girl())
 
 @dp.callback_query_handler(state=AddModelWorker.confirm, text_contains="confirm_add_girl_")
-async def add_model_worker(call: types.CallbackQuery, state: FSMContext):
-    answer = call.data.split("_")[3]
+async def confirm_add_girl(call: types.CallbackQuery, state: FSMContext):
+    answer = call.data.split("_")[-1]
     if int(answer) == 1:
         async with state.proxy() as data:
-            data_girl = data["data_girl"]
+            data_girl = data["data_girl"] + [";".join(data["photos"]), data["nude_photos"]]
             req = db.add_girl(conn, cursor, call.from_user.id, data_girl)
             if req is True:
                 await bot.send_message(call.from_user.id, "Девочка успешно добавлена!", reply_markup=nav.worker_panel())
