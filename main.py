@@ -392,6 +392,7 @@ async def change_photo(call: types.CallbackQuery):
 
     new_photo = photos[new_photo_index]
 
+    print(photos)
     # Проверка и вывод значения new_photo
     print(f"Sending photo: {new_photo}")
 
