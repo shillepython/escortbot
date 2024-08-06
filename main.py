@@ -392,8 +392,6 @@ async def change_photo(call: types.CallbackQuery):
 
     new_photo = photos[new_photo_index]
 
-    print(new_photo == '')
-
     if new_photo != '':
         try:
             await call.message.delete()
