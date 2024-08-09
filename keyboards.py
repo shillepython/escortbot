@@ -197,7 +197,7 @@ def choose_payment(girl, index_page, price):
     eth = InlineKeyboardButton(text=f"💷 ETH", callback_data=f"choose_payment_{girl[0]}_{index_page}_{price}_eth")
     btc = InlineKeyboardButton(text=f"💷 BTC", callback_data=f"choose_payment_{girl[0]}_{index_page}_{price}_btc")
     back = InlineKeyboardButton(text="⏪ Назад", callback_data=f"show_girl_number_{girl[0]}_{index_page}")
-    # menu.add(card)
+    menu.add(card)
     menu.add(tex)
     menu.add(usdt)
     menu.add(eth)
